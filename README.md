@@ -12,7 +12,8 @@ This project contains four code examples:
   * [Reference](https://en.wikipedia.org/wiki/Verlet_integration)
 * A numerical solution to the heat equation using the Crank Nicolson method in 3D
   * [Code](https://github.com/xoreo/jlmd/blob/master/Code/crank_nicolson_3d.jl)
-  * [Reference](https://en.wikipedia.org/wiki/Heat_equation)
+  * [Reference 1](https://en.wikipedia.org/wiki/Heat_equation)
+  * [Reference 2](https://en.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method)
 * A real molecular dynamics simulation of atoms behaving as Lennard Jones 12-6 potential.
   * [Code](https://github.com/xoreo/jlmd/blob/master/Code/lennard_jones.jl)
   * [Reference](https://en.wikipedia.org/wiki/Lennard-Jones_potential)
