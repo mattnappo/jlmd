@@ -1,0 +1,117 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.75in]{geometry}
+
+\usepackage{amsmath}
+\usepackage{physics}
+\usepackage{enumerate}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{esint}
+\usepackage{amsthm}
+\usepackage{mathtools}
+
+\title{Molecular Dynamics Notes}
+\author{Matt Nappo}
+\date{March 2020}
+
+\begin{document}
+
+\maketitle
+
+\section{Theory}
+
+We want to solve the following Hamiltonian for large values of $N$ (many particles):
+\begin{equation}
+    \mathcal{H} = \sum_{i=1}^N \frac{\mathbf{p}_i^2}{2m_i} + \sum_{i>j=1}^N V(\mathbf{r}_{ij}) + \sum_{i=1}^N U(\mathbf{r}_i)
+\end{equation}
+
+Hamilton's equations solve for $\dot{\mathbf{p}}$ and $\dot{\mathbf{r}}$:
+
+\begin{equation}
+    \dot{\mathbf{r}} = \pdv{\mathcal{H}}{\mathbf{p}_i}, \qquad \dot{\mathbf{p}} = -\pdv{\mathcal{H}}{\mathbf{r}_i} = \mathbf{f}_i
+\end{equation}
+
+\subsection{Force}
+
+Generally, $F=-\nabla U$. But in this case, since we have two potential energy terms, external potential energy $U$ and interaction potential energy $V$, we have to consider both. Here we will obtain the total force term so that we can solve the system:
+
+First, recall that the gradient is a linear operator: $$\nabla \lambda(u+v) = \lambda \nabla u + \lambda \nabla g, \quad \lambda \in \mathbb{R}, \quad u, v: \mathbb{R}^n \rightarrow \mathbb{R}$$
+
+Then, $$\mathbf{f}_i = -\nabla E_i = -\nabla (U_i + V_i) = -\nabla U_i - \nabla V_{tot}^i$$
+
+There exists some (potentially zero) interaction energy between every particle, in all combinations. So, the total term, not of the whole system but of a particle $i$, is the sum of all its iteration energies with all other particles in the system. $$V_{tot}^i = \sum_{i \neq j \in i(N)} V(\mathbf{r_{ij}})$$
+
+Thus, since $$\nabla \sum_{i=1}^n G_i = \sum_{i=1}^n \nabla G_i = \nabla G_1 + \nabla G_2 + ... + \nabla G_n,$$
+
+\begin{equation}
+    \mathbf{f}_i = -\nabla_i U(\mathbf{r}_i) - \sum_{i \neq j} \nabla_i V(\mathbf{r}_{ij})
+\end{equation}
+
+Now the system is solvable. The forces, positions, velocities, and energies are all known. Solving this system is the heart of molecular dynamics. It is what we will be doing, but computationally. We will try to find a way to solve this system accurately and efficiently. There will definitely be a trade-off between performance and accuracy.
+
+\section{Physical Properties}
+
+Average kinetic energy of the system (calculated vectorially):
+
+Note: I am not sure I derived this correctly, I don't think its 100\% accurate.
+
+Because molecular dynamics simulations are quite deterministic, most physical properties can be calculated like averages.
+
+\begin{equation}
+    \langle E_k \rangle = \frac{1}{N}\sum_{i=1}^N E_k(t_j) = \frac{1}{N}\sum_{i=1}^N \frac{1}{2}m_i \dot{\mathbf{r}}_i^2
+\end{equation}
+
+Probability distribution function:
+
+\begin{equation}
+    \mathcal{W}(\mathbf{R}, \mathbf{P}) = \frac{1}{N! \hbar^{3N}}e^{-\mathcal{H}/k_B T}
+\end{equation}
+
+$n$-body density function:
+
+\begin{equation}
+    \rho_n(\mathbf{r}_1, ..., \mathbf{r}_n) = \frac{1}{\mathcal{Z}} \frac{N!}{(N-n)!} \int \mathcal{W}(\mathbf{R}, \mathbf{P})\,d\mathbf{R}_n d\mathbf{P}
+\end{equation}
+
+So, $\mathcal{Z}$ itself is the total partition ``function'', integrated over all of the particles and over the momentum and position differentials of all particles in the system:
+
+\begin{equation}
+    \mathcal{Z} = \int \mathcal{W}(\mathbf{R, P}) \, d\mathbf{R}_n d\mathbf{P} \in \mathbb{R}
+\end{equation}
+
+Notice the difference in the differentials. When calculating $\rho_n$, you integrate over the position differential of the specific particle and the momentum differentials of all particles. That integral, also $\in \mathbb{R}$, will be different than $\mathcal{Z}$ (integrated over all momentum and position differentials).
+
+Total system density (I think; not so sure about the double sum since the vector operator already contains a sum over $N$):
+
+\begin{equation}
+    \rho (\mathbf{r}) = \langle \hat{\rho}(\mathbf{r}) \rangle = \frac{1}{N}\sum_{i=1}^N \sum_{i=1}^N \delta(\mathbf{r} - \mathbf{r}_i)
+\end{equation}
+
+TODO: Read into radial distribution function, static structure factor, temperature, and pressure.
+
+\section{Lennard Jones Potential}
+
+Assume an intermediate number of particles ($N\approx 100$) interact in an isolated system with given \textit{Lennard Jones} potential
+\begin{equation}
+    V(r) = 4\varepsilon \left[ \left( \frac{\sigma}{r} \right)^{12} - \left( \frac{\sigma}{r} \right)^6 \right]
+\end{equation}
+
+Therefore, the total force exerted on a particle $i$ by all other particles in the system is
+\begin{equation}
+    \mathbf{f}_i = \frac{48\varepsilon}{\sigma^2} \sum_{j \neq i}^N (\mathbf{r}_i - \mathbf{r}_j)
+    \left[ \left( \frac{\sigma}{r_{ij}} \right)^{14} - \frac{1}{2} \left( \frac{\sigma}{r_{ij}} \right)^8 \right]
+\end{equation}
+
+It is clear that computing LJ for every particle in the entire system is very expensive. $(\sigma/r_{ij})^8$ can be cached, but this is still roughly $O(n^2)$, as there are $N$ additions for each of the $N$ particles. Total number of elements to sum is $N^2/2$, because $V(r_{ij}) = V(r_{ji}$). So, we are going to need a much smarter way to do this.
+
+Substituting this force into Newton's second law yields
+\begin{equation}
+    \dv[2]{\mathbf{r}_i}{t} = \mathbf{g}_i = \sum_{j \neq i}^N (\mathbf{r}_i - \mathbf{r}_j) \left( \frac{1}{r_{ij}^{14}} - \frac{1}{2r_{ij}^8} \right)
+\end{equation}
+
+This is the equation that we will be solving using Verlet integration.
+
+\end{document}
+
