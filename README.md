@@ -18,5 +18,7 @@ This project contains four code examples:
   * [Code](https://github.com/xoreo/jlmd/blob/master/Code/lennard_jones.jl)
   * [Reference](https://en.wikipedia.org/wiki/Lennard-Jones_potential)
   * Note: this is incomplete. It is more complete in the Python version in the main repo.
+* Bonus code: Gaussian random walks in 1d, 2d, and 3d:
+  * [Code](https://github.com/xoreo/jlmd/blob/master/Code/rw.jl)
 
 Dowland: Looking back on this code from over a year ago, I realize how non-idiomatic and shit some of it is lol. Sorry if this is underwhelming.
